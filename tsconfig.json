@@ -34,5 +34,5 @@
     }
   },
   "include": ["src/**/*", "vitest.setup.ts", "*.config.ts", "setup.ts"],
-  "types": ["vitest/globals", "@testing-library/jest-dom"]
+  "types": ["vitest/globals", "@testing-library/jest-dom", "chrome-types"]
 }
