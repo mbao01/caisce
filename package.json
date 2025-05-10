@@ -1,25 +1,35 @@
 {
   "name": "caisce",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "tsc && vite build",
+    "build:preview": "vite preview",
+    "dev": "vite --debug --mode development",
+    "check": "tsc --noEmit --incremental",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "test": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "prettier": "prettier --check \"**/*.{js,ts,tsx,css,md,json}\"",
+    "prettier:write": "prettier --write \"**/*.{js,ts,tsx,css,md,json}\"",
+    "start": "vite --port 3000",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "test-storybook": "test-storybook",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\""
+    "storybook:build": "storybook build",
+    "storybook:test": "test-storybook",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:visual": "test-storybook --url http://127.0.0.1:6006",
+    "test:visual:coverage": "test-storybook --coverage --url http://127.0.0.1:6006",
+    "test:visual:ci": "test-storybook --ci --verbose --url http://127.0.0.1:6006",
+    "test:visual:watch": "test-storybook --watch --url http://127.0.0.1:6006",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@storybook/addon-essentials": "^8.6.12",
     "@storybook/addon-interactions": "^8.6.12",
     "@storybook/addon-links": "^8.6.12",

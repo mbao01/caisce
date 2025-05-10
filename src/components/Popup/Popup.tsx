@@ -1,35 +1,32 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 
-const Popup: React.FC = () => {
-  const [messages, setMessages] = useState<Array<{ text: string; isUser: boolean }>>([])
-  const [input, setInput] = useState('')
+export const Popup: React.FC = () => {
+  const [messages, setMessages] = useState<Array<{ text: string; isUser: boolean }>>([]);
+  const [input, setInput] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim()) return
+    e.preventDefault();
+    if (!input.trim()) return;
 
-    setMessages([...messages, { text: input, isUser: true }])
-    setInput('')
+    setMessages([...messages, { text: input, isUser: true }]);
+    setInput("");
 
     // TODO: Implement AI response logic
     setTimeout(() => {
-      setMessages(prev => [...prev, { text: 'This is a placeholder response.', isUser: false }])
-    }, 1000)
-  }
+      setMessages((prev) => [...prev, { text: "This is a placeholder response.", isUser: false }]);
+    }, 1000);
+  };
 
   return (
     <div className="w-96 h-[500px] flex flex-col bg-white dark:bg-gray-900">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-          >
+          <div key={index} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
                 message.isUser
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
               }`}
             >
               {message.text}
@@ -55,7 +52,7 @@ const Popup: React.FC = () => {
         </div>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default Popup 
+export default Popup;
