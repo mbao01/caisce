@@ -105,7 +105,7 @@ export const Chat = () => {
       <header className="px-4 py-3 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Avatar>
-            <Avatar.Image src="/caisce.png" />
+            <Avatar.Image src="/caisce.svg" className="size-6!" />
             <Avatar.Fallback className="text-primary">
               <Sparkles className="size-4 shrink-0" />
             </Avatar.Fallback>
@@ -119,7 +119,7 @@ export const Chat = () => {
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <div className="border-b px-4 py-2">
+        <div className="border-b px-4 py-2 sticky top-0 z-50 bg-base-100">
           <Tabs.List className="h-8 p-0.5 grid w-full grid-cols-3">
             <Tabs.Trigger value="chat" className="h-7 px-2 cursor-pointer">
               <Bot size={14} className="mr-1" />
@@ -177,9 +177,9 @@ export const Chat = () => {
                     className={`group flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {message.role === "assistant" && (
-                      <Avatar className="h-8 w-8 mr-2 mt-1 flex-shrink-0">
-                        <Avatar.Fallback className="bg-primary text-primary-foreground">
-                          <Bot size={14} />
+                      <Avatar className="h-6 w-6 mr-2 mt-1 flex-shrink-0">
+                        <Avatar.Fallback className="text-primary">
+                          <Bot size={12} />
                         </Avatar.Fallback>
                       </Avatar>
                     )}
@@ -206,34 +206,36 @@ export const Chat = () => {
                     </div>
 
                     {message.role === "user" && (
-                      <Avatar className="h-8 w-8 ml-2 mt-1 flex-shrink-0">
-                        <Avatar.Fallback className="bg-secondary text-secondary-foreground">
-                          <User size={14} />
+                      <Avatar className="h-6 w-6 ml-1 mt-1 flex-shrink-0">
+                        <Avatar.Fallback className="text-secondary">
+                          <User size={12} />
                         </Avatar.Fallback>
                       </Avatar>
                     )}
 
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <DropdownMenu>
-                        <DropdownMenu.Trigger asChild>
-                          <Button variant="ghost" className="h-6 w-6 ml-1 mt-1">
-                            <MoreVertical size={12} />
-                          </Button>
-                        </DropdownMenu.Trigger>
-                        <DropdownMenu.Content align="end">
-                          <DropdownMenu.Item onClick={() => copyMessage(message.content)}>
-                            <Copy size={14} className="mr-2" />
-                            Copy
-                          </DropdownMenu.Item>
-                          {message.role === "assistant" && (
-                            <DropdownMenu.Item onClick={() => reload()}>
-                              <RefreshCw size={14} className="mr-2" />
-                              Regenerate
+                    {message.role !== "user" && (
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <DropdownMenu>
+                          <DropdownMenu.Trigger asChild>
+                            <Button variant="ghost" className="h-6 w-6 ml-1 mt-1">
+                              <MoreVertical size={12} />
+                            </Button>
+                          </DropdownMenu.Trigger>
+                          <DropdownMenu.Content align="end">
+                            <DropdownMenu.Item onClick={() => copyMessage(message.content)}>
+                              <Copy size={14} className="mr-2" />
+                              Copy
                             </DropdownMenu.Item>
-                          )}
-                        </DropdownMenu.Content>
-                      </DropdownMenu>
-                    </div>
+                            {message.role === "assistant" && (
+                              <DropdownMenu.Item onClick={() => reload()}>
+                                <RefreshCw size={14} className="mr-2" />
+                                Regenerate
+                              </DropdownMenu.Item>
+                            )}
+                          </DropdownMenu.Content>
+                        </DropdownMenu>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {isLoading && (
@@ -256,7 +258,7 @@ export const Chat = () => {
             )}
           </ScrollArea>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t sticky bottom-0 z-50 bg-base-100">
             <form onSubmit={handleSubmit} className="flex gap-2">
               <Input
                 value={input}
