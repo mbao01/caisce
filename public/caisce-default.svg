@@ -8,15 +8,9 @@
   viewBox="0 0 200.000000 200.000000"
   preserveAspectRatio="xMidYMid meet"
 >
-  <defs>
-    <linearGradient id="gradient-8" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ad5389"></stop>
-      <stop offset="100%" stop-color="#3c1053"></stop>
-    </linearGradient>
-  </defs>
   <g
     transform="translate(0.000000,200.000000) scale(0.100000,-0.100000)"
-    fill="url(#gradient-8)"
+    fill="#000000"
     stroke="none"
   >
     <path
