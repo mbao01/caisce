@@ -7,6 +7,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "GET_PAGE_CONTENT") {
     // TODO: Implement page content extraction logic
+    console.log("[Background:onMessage] Sender: ", sender);
     sendResponse({ content: "Page content placeholder" });
   }
   return true;

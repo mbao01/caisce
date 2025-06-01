@@ -1,7 +1,8 @@
-import { Popup } from "./components";
+import { Chat } from "./components";
 
 const App = () => {
-  return <Popup />;
+  return <Chat />;
+  // return <Popup />;
 };
 
 export default App;
