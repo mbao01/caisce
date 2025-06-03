@@ -34,14 +34,14 @@ async function bootstrap() {
   // );
   //swagger config
   const config = new DocumentBuilder()
-    .setTitle("Veno HR Api Documentation")
-    .setDescription("The API description")
+    .setTitle("Caisce Documentation")
+    .setDescription("The caisce API description")
     .setVersion("1.0")
-    .addTag("api")
+    .addTag("docs")
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api", app, document);
+  SwaggerModule.setup("docs", app, document);
 
   await app.listen(process.env.PORT ?? 3000);
 }
