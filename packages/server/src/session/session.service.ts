@@ -20,7 +20,7 @@ export class SessionService {
   }
 
   // Get session ID from request cookies
-  #getSessionId(req: Request): string | null {
+  getSessionId(req: Request): string | null {
     const cookieHeader = req.headers.cookie;
 
     if (!cookieHeader) {
@@ -63,7 +63,7 @@ export class SessionService {
 
   // Get session from store, or create new empty session
   async getSession(req: Request): Promise<Express.Session | null> {
-    const sessionId = this.#getSessionId(req);
+    const sessionId = this.getSessionId(req);
 
     if (!sessionId) {
       return null;
@@ -95,7 +95,7 @@ export class SessionService {
 
   // Destroy session
   async destroySession(req: Request, res: Response): Promise<void> {
-    const sessionId = this.#getSessionId(req);
+    const sessionId = this.getSessionId(req);
     if (sessionId) {
       const cacheKey = this.#getCacheKey(sessionId);
       await this.cacheService.del(cacheKey);

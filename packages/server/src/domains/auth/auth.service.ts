@@ -51,13 +51,13 @@ export class AuthService {
     const userRefreshToken = user?.refreshToken;
 
     if (!(sessionId && sessionRefreshToken && userRefreshToken)) {
-      throw new ForbiddenException("Bad or malformed request");
+      throw new ForbiddenException("Seems like this request is bad or malformed");
     }
 
     // check that the session ID matches
     const refreshTokenMatches = await argon2.verify(sessionRefreshToken, userRefreshToken);
     if (!refreshTokenMatches) {
-      throw new ForbiddenException("Access Denied");
+      throw new ForbiddenException("Your access is denied as there is a token mismatch");
     }
 
     const { accessToken, refreshToken } = await this.signTokens(sessionId, user);
