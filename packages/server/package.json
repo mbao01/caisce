@@ -33,6 +33,7 @@
     "@nestjs/platform-express": "^11.1.2",
     "@nestjs/swagger": "^11.2.0",
     "@prisma/client": "6.8.2",
+    "argon2": "^0.43.0",
     "cache-manager": "^6.4.3",
     "cookie": "^1.0.2",
     "passport": "^0.7.0",

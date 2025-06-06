@@ -1,36 +1,35 @@
-import {
-  Controller,
-  Request,
-  Post,
-  UseGuards,
-  Get,
-  Body,
-  UsePipes,
-  Response,
-} from "@nestjs/common";
+import { type Request } from "express";
+import { Controller, Post, UseGuards, Get, Body, Req, Res } from "@nestjs/common";
 import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { AuthService } from "./auth.service";
-import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { JwtAccessGuard } from "./guards/jwt-access.guard";
 import { CredentialDto, credentialSchema } from "./schema/login.schema";
 import { ValidatorPipe } from "src/pipes/validator.pipe";
+import { JwtRefreshGuard } from "./guards/jwt-refresh.guard";
 
 @Controller("auth")
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post("credential")
+  @Post("login")
   @UseGuards(LocalAuthGuard)
   async login(
     @Body(new ValidatorPipe(credentialSchema)) credential: CredentialDto,
-    @Request() req,
-    @Response({ passthrough: true }) res
+    @Req() req,
+    @Res({ passthrough: true }) res
   ) {
     return await this.authService.login(req, res);
   }
 
+  @UseGuards(JwtRefreshGuard)
+  @Get("refresh")
+  async refreshTokens(@Req() req: Request, @Res({ passthrough: true }) res) {
+    return await this.authService.refreshTokens(req, res);
+  }
+
   @Get("profile")
-  @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req) {
+  @UseGuards(JwtAccessGuard)
+  getProfile(@Req() req) {
     return req.user;
   }
 }

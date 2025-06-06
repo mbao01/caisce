@@ -3,77 +3,48 @@ import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import * as cookie from "cookie";
 import { CacheService } from "@/cache/cache.service";
-import { SESSION_KEY_PREFIX, COOKIE_NAME, COOKIE_OPTIONS, SESSION_TTL } from "./session.constant";
-
-interface SessionData {
-  sid?: string | null;
-  cookie: {
-    maxAge?: number;
-    expires?: Date | null;
-    [key: string]: any;
-  };
-  passport?: {
-    user?: any;
-  };
-  [key: string]: any;
-}
+import {
+  COOKIE_MAX_AGE,
+  COOKIE_NAME,
+  COOKIE_OPTIONS,
+  ONE_MINUTE,
+  SESSION_KEY_PREFIX,
+} from "./session.constant";
 
 @Injectable()
 export class SessionService {
-  // Hold session state per request lifecycle
-  private sessions = new WeakMap<Request, SessionData>();
-
   constructor(private cacheService: CacheService) {}
 
-  #initSession(req: Request) {
-    // New session: initialize with empty data and default cookie
-    let sid: string | undefined;
-    const cookieHeader = req.headers.cookie;
-    if (cookieHeader) {
-      const cookies = cookie.parse(cookieHeader);
-      sid = cookies[COOKIE_NAME];
-    }
-
-    const session = {
-      sid,
-      cookie: {
-        // we do not want session expiring before cookie so, max age is 1 minute behind session expiration.
-        maxAge: SESSION_TTL - 60 * 1000,
-        expires: null,
-      },
-    };
-
-    this.sessions.set(req, session);
-
-    return session;
-  }
-
-  #getCacheKey(sid: string) {
-    return `${SESSION_KEY_PREFIX}${sid}`;
+  #getCacheKey(sessionId: string) {
+    return `${SESSION_KEY_PREFIX}${sessionId}`;
   }
 
   // Get session ID from request cookies
   #getSessionId(req: Request): string | null {
     const cookieHeader = req.headers.cookie;
-    if (!cookieHeader) return null;
+
+    if (!cookieHeader) {
+      return null;
+    }
 
     const cookies = cookie.parse(cookieHeader);
 
     return cookies[COOKIE_NAME] || null;
   }
 
-  async #setSession(session: SessionData, res: Response) {
-    const maxAge = session.cookie.maxAge ?? SESSION_TTL - 60 * 1000;
+  async #setSession(session: Express.Session, res: Response) {
+    const maxAge = session.cookie.maxAge ?? COOKIE_MAX_AGE;
 
-    if (!session.sid) {
-      session.sid = uuidv4();
+    let sessionId = session.sid;
+    if (!sessionId) {
+      sessionId = uuidv4();
 
       const expires = session.cookie.expires
         ? new Date(session.cookie.expires)
         : new Date(Date.now() + maxAge);
 
       // Set cookie on response
-      const cookieStr = cookie.serialize(COOKIE_NAME, session.sid, {
+      const cookieStr = cookie.serialize(COOKIE_NAME, sessionId, {
         ...COOKIE_OPTIONS,
         maxAge,
         expires,
@@ -83,37 +54,30 @@ export class SessionService {
     }
 
     // Store session in Redis
-    const cacheKey = this.#getCacheKey(session.sid);
-    await this.cacheService.set(cacheKey, session, SESSION_TTL);
+    const newSession = { ...session, sid: sessionId };
+    const cacheKey = this.#getCacheKey(sessionId);
+    await this.cacheService.set(cacheKey, newSession, maxAge + ONE_MINUTE);
 
-    return session;
+    return newSession;
   }
 
-  // Load session from store, or create new empty session
-  async loadSession(req: Request): Promise<SessionData> {
-    let session: SessionData | undefined | null = this.sessions.get(req);
-    if (session) {
-      return session;
+  // Get session from store, or create new empty session
+  async getSession(req: Request): Promise<Express.Session | null> {
+    const sessionId = this.#getSessionId(req);
+
+    if (!sessionId) {
+      return null;
     }
 
-    const sid = this.#getSessionId(req);
-    if (!sid) {
-      return this.#initSession(req);
-    }
-
-    const cacheKey = this.#getCacheKey(sid);
-    session = await this.cacheService.get<SessionData>(cacheKey);
-
-    if (!(session?.cookie && session?.sid)) {
-      return this.#initSession(req);
-    }
+    const cacheKey = this.#getCacheKey(sessionId);
+    const session = await this.cacheService.get<Express.Session>(cacheKey);
 
     return session;
   }
 
   async createSession(res: Response, user?: any) {
-    const maxAge = SESSION_TTL - 60 * 1000;
-    const session: SessionData = {
+    const maxAge = COOKIE_MAX_AGE;
+    const session: Express.Session = {
       cookie: {
         maxAge,
         expires: new Date(Date.now() + maxAge),
@@ -124,27 +88,18 @@ export class SessionService {
       session.passport = { user };
     }
 
-    const { sid } = await this.#setSession(session, res);
+    const { sid: sessionId } = await this.#setSession(session, res);
 
-    return { sid };
-  }
-
-  // Save session to store if changed
-  async saveSession(req: Request, res: Response): Promise<void> {
-    const session = this.sessions.get(req);
-    if (!session) return;
-
-    await this.#setSession(session, res);
+    return { sessionId };
   }
 
   // Destroy session
   async destroySession(req: Request, res: Response): Promise<void> {
-    const sid = this.#getSessionId(req);
-    if (sid) {
-      const cacheKey = this.#getCacheKey(sid);
+    const sessionId = this.#getSessionId(req);
+    if (sessionId) {
+      const cacheKey = this.#getCacheKey(sessionId);
       await this.cacheService.del(cacheKey);
     }
-    this.sessions.delete(req);
     res.setHeader(
       "Set-Cookie",
       cookie.serialize(COOKIE_NAME, "", {
@@ -154,26 +109,28 @@ export class SessionService {
     );
   }
 
-  // Convenience getter/setter for session data on request
-  async get(req: Request, key: string): Promise<any> {
-    const session = await this.loadSession(req);
-    return session[key];
-  }
+  async updateSession(
+    sessionId: string,
+    record: Record<string, unknown>,
+    res: Response
+  ): Promise<void> {
+    const cacheKey = this.#getCacheKey(sessionId);
+    let session = await this.cacheService.get<Express.Session>(cacheKey);
 
-  async set(req: Request, key: string, value: any): Promise<void> {
-    const session = await this.loadSession(req);
-    session[key] = value;
-  }
+    if (session) {
+      const ttl = await this.cacheService.ttl(cacheKey);
+      const maxAge = ttl ? Math.max(Math.floor(ttl - Date.now()), 0) - ONE_MINUTE : COOKIE_MAX_AGE;
 
-  // Helpers for passport user
-  async getUser(req: Request): Promise<any> {
-    const session = await this.loadSession(req);
-    return session.passport?.user ?? null;
-  }
+      session = {
+        ...session,
+        ...record,
+        cookie: {
+          maxAge,
+          expires: new Date(Date.now() + maxAge),
+        },
+      };
 
-  async setUser(req: Request, user: any): Promise<void> {
-    const session = await this.loadSession(req);
-    if (!session.passport) session.passport = {};
-    session.passport.user = user;
+      await this.#setSession(session, res);
+    }
   }
 }

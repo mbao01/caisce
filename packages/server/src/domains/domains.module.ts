@@ -11,6 +11,8 @@ import { SessionMiddleware } from "@/session/session.midleware";
 })
 export class DomainsModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(SessionMiddleware).forRoutes({ path: "*", method: RequestMethod.ALL });
+    consumer
+      .apply(SessionMiddleware)
+      .forRoutes({ path: "/auth/refresh", method: RequestMethod.GET });
   }
 }

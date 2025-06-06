@@ -16,6 +16,11 @@ export class CacheService {
     await this.cache.set(key, value, ttl);
   }
 
+  async ttl(key: string) {
+    console.log(`TTL ${key} in REDIS`);
+    return await this.cache.ttl(key);
+  }
+
   async del(key: string) {
     console.log(`DEL ${key} from REDIS`);
     await this.cache.del(key);
