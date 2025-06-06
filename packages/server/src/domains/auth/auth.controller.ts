@@ -1,4 +1,13 @@
-import { Controller, Request, Post, UseGuards, Get, Body, UsePipes } from "@nestjs/common";
+import {
+  Controller,
+  Request,
+  Post,
+  UseGuards,
+  Get,
+  Body,
+  UsePipes,
+  Response,
+} from "@nestjs/common";
 import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
@@ -13,9 +22,10 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   async login(
     @Body(new ValidatorPipe(credentialSchema)) credential: CredentialDto,
-    @Request() req
+    @Request() req,
+    @Response({ passthrough: true }) res
   ) {
-    return await this.authService.login(req.user);
+    return await this.authService.login(req, res);
   }
 
   @Get("profile")

@@ -6,14 +6,14 @@ import { Inject, Injectable } from "@nestjs/common";
 export class CacheService {
   constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
 
-  async get(key: string) {
+  async get<T>(key: string) {
     console.log(`GET ${key} from REDIS`);
-    return await this.cache.get(key);
+    return await this.cache.get<T>(key);
   }
 
-  async set<T>(key: string, value: T) {
+  async set<T>(key: string, value: T, ttl?: number) {
     console.log(`SET ${key} in REDIS`);
-    await this.cache.set(key, value);
+    await this.cache.set(key, value, ttl);
   }
 
   async del(key: string) {

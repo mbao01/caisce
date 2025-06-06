@@ -6,9 +6,7 @@ export class ValidatorPipe implements PipeTransform {
 
   transform(value: unknown, metadata: ArgumentMetadata) {
     try {
-      console.log("Value: ", value);
       const parsedValue = this.schema.parse(value);
-      console.log("Parsed Value: ", parsedValue);
       return parsedValue;
     } catch (error) {
       throw new BadRequestException("Validation failed");
