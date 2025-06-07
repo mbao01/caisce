@@ -13,14 +13,14 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "DOTENV_CONFIG_PATH=.env.test.local jest --setupFiles=dotenv/config",
     "db:client": "prisma generate",
     "db:migrate": "prisma migrate",
     "db:seed": "prisma db seed",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
+    "test:watch": "pnpm test --watch",
+    "test:cov": "pnpm test --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "pnpm test --config ./test/jest-e2e.json"
   },
   "dependencies": {
     "@keyv/redis": "^4.4.0",
@@ -76,22 +76,5 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seeds/user.ts"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }
