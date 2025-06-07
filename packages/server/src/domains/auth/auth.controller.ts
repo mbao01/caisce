@@ -4,7 +4,7 @@ import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { AuthService } from "./auth.service";
 import { JwtAccessGuard } from "./guards/jwt-access.guard";
 import { CredentialDto, credentialSchema } from "./schema/login.schema";
-import { ValidatorPipe } from "src/pipes/validator.pipe";
+import { ValidatorPipe } from "@/pipes/validator.pipe";
 import { JwtRefreshGuard } from "./guards/jwt-refresh.guard";
 
 @Controller("auth")

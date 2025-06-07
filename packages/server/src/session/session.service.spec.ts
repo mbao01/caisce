@@ -166,6 +166,60 @@ describe("SessionService", () => {
       );
     });
 
+    it("should update session with new data but keeping the same cookie maxAge and expires", async () => {
+      const sessionId = uuidv4();
+      const now = Date.now();
+      const mockSession = {
+        sid: sessionId,
+        cookie: { maxAge: 3_600_000, expires: new Date(now + 3_600_000) },
+      };
+      (mockCacheService.get as jest.Mock).mockResolvedValue(mockSession);
+      (mockCacheService.ttl as jest.Mock).mockResolvedValue(now + 2_000_000);
+
+      await service.updateSession(sessionId, { data: "new" }, mockRes);
+
+      expect(mockCacheService.set).toHaveBeenCalledWith(
+        expect.stringContaining("session::"),
+        {
+          cookie: expect.objectContaining({
+            maxAge: 1_940_000,
+            expires: new Date(now + 1_940_000),
+          }),
+          data: "new",
+          sid: sessionId,
+        },
+        2_000_000
+      );
+      expect(mockRes.setHeader).not.toHaveBeenCalled();
+    });
+
+    it("should update session with cookie maxAge as 0 when session ttl is less than 1 minute", async () => {
+      const sessionId = uuidv4();
+      const now = Date.now();
+      const mockSession = {
+        sid: sessionId,
+        cookie: { maxAge: 3_600_000, expires: new Date(now + 3_600_000) },
+      };
+      (mockCacheService.get as jest.Mock).mockResolvedValue(mockSession);
+      (mockCacheService.ttl as jest.Mock).mockResolvedValue(now + 59_000);
+
+      await service.updateSession(sessionId, { data: "new" }, mockRes);
+
+      expect(mockCacheService.set).toHaveBeenCalledWith(
+        expect.stringContaining("session::"),
+        {
+          cookie: expect.objectContaining({
+            maxAge: 0,
+            expires: new Date(now),
+          }),
+          data: "new",
+          sid: sessionId,
+        },
+        60_000
+      );
+      expect(mockRes.setHeader).not.toHaveBeenCalled();
+    });
+
     it("should not update if session not found", async () => {
       (mockCacheService.get as jest.Mock).mockResolvedValue(null);
       await service.updateSession(uuidv4(), { data: "new" }, mockRes);

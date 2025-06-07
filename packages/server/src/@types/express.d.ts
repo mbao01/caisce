@@ -5,13 +5,15 @@ declare namespace Express {
     refreshToken?: string;
   }
 
+  interface SessionCookie {
+    maxAge: number;
+    expires: Date;
+    [key: string]: any;
+  }
+
   interface Session {
     sid?: string | null;
-    cookie: {
-      maxAge?: number;
-      expires?: Date | null;
-      [key: string]: any;
-    };
+    cookie: Partial<SessionCookie>;
     passport?: {
       user?: any;
     };

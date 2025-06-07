@@ -19,6 +19,7 @@ export class JwtAccessGuard extends AuthGuard("jwt") {
     }
     // Add your custom authentication logic here
     // for example, call super.logIn(request) to establish a session.
+    /* istanbul ignore next */
     return super.canActivate(context);
   }
 

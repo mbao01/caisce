@@ -33,15 +33,11 @@ export class SessionService {
   }
 
   async #setSession(session: Express.Session, res: Response) {
-    const maxAge = session.cookie.maxAge ?? COOKIE_MAX_AGE;
+    const { maxAge, expires } = session.cookie as Express.SessionCookie;
 
     let sessionId = session.sid;
     if (!sessionId) {
       sessionId = uuidv4();
-
-      const expires = session.cookie.expires
-        ? new Date(session.cookie.expires)
-        : new Date(Date.now() + maxAge);
 
       // Set cookie on response
       const cookieStr = cookie.serialize(COOKIE_NAME, sessionId, {
@@ -119,7 +115,7 @@ export class SessionService {
 
     if (session) {
       const ttl = await this.cacheService.ttl(cacheKey);
-      const maxAge = ttl ? Math.max(Math.floor(ttl - Date.now()), 0) - ONE_MINUTE : COOKIE_MAX_AGE;
+      const maxAge = ttl ? Math.max(Math.floor(ttl - Date.now()) - ONE_MINUTE, 0) : COOKIE_MAX_AGE;
 
       session = {
         ...session,

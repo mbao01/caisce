@@ -124,4 +124,106 @@ describe("UsersService", () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe("UsersService -> statements", () => {
+    let service: UsersService;
+    let prismaService: PrismaService;
+
+    beforeEach(async () => {
+      prismaService = new PrismaService();
+      service = new UsersService(prismaService);
+    });
+
+    describe("getUser", () => {
+      it("should return user by email", async () => {
+        prismaService.user.findUnique = jest.fn().mockResolvedValue(mockUser);
+        const result = await service.getUser({ email: mockUser.email });
+        expect(result).toEqual(mockUser);
+        expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+          where: { email: mockUser.email },
+        });
+      });
+
+      it("should return null if user not found", async () => {
+        prismaService.user.findUnique = jest.fn().mockResolvedValue(null);
+        const result = await service.getUser({ email: "nonexistent@example.com" });
+        expect(result).toBeNull();
+      });
+    });
+
+    describe("createUser", () => {
+      it("should create a new user", async () => {
+        prismaService.user.create = jest.fn().mockResolvedValue(mockUser);
+        const result = await service.createUser({
+          email: mockUser.email,
+          name: "Test User",
+        });
+        expect(result).toEqual(mockUser);
+        expect(prismaService.user.create).toHaveBeenCalled();
+      });
+
+      it("should throw BadRequestException if user already exists", async () => {
+        prismaService.user.create = jest
+          .fn()
+          .mockRejectedValue(new BadRequestException("User already exists"));
+        await expect(
+          service.createUser({
+            email: mockUser.email,
+            name: "Test User",
+          })
+        ).rejects.toThrow(BadRequestException);
+      });
+    });
+
+    describe("updateUser", () => {
+      it("should update user information", async () => {
+        prismaService.user.update = jest.fn().mockResolvedValue({
+          ...mockUser,
+          email: "new@example.com",
+        });
+        const result = await service.updateUser({
+          where: { id: mockUser.id },
+          data: { email: "new@example.com" },
+        });
+        expect(result).toEqual({ ...mockUser, email: "new@example.com" });
+        expect(prismaService.user.update).toHaveBeenCalled();
+      });
+
+      it("should throw error if user not found", async () => {
+        prismaService.user.update = jest.fn().mockResolvedValue(null);
+        await expect(
+          service.updateUser({ where: { id: "nonexistent" }, data: { email: "new@example.com" } })
+        ).resolves.toBeNull();
+      });
+    });
+
+    describe("deleteUser", () => {
+      it("should delete user", async () => {
+        prismaService.user.delete = jest.fn().mockResolvedValue(mockUser);
+        const result = await service.deleteUser({ id: mockUser.id });
+        expect(result).toEqual(mockUser);
+        expect(prismaService.user.delete).toHaveBeenCalled();
+      });
+
+      it("should throw error if user not found", async () => {
+        prismaService.user.delete = jest.fn().mockRejectedValue(new Error("User not found"));
+        await expect(service.deleteUser({ id: "nonexistent" })).rejects.toThrow();
+      });
+    });
+
+    describe("getUsers", () => {
+      it("should return all users", async () => {
+        prismaService.user.findMany = jest.fn().mockResolvedValue([mockUser]);
+        const result = await service.getUsers({});
+        expect(result).toEqual([mockUser]);
+        expect(prismaService.user.findMany).toHaveBeenCalled();
+      });
+
+      it("should return empty array if no users", async () => {
+        prismaService.user.findMany = jest.fn().mockResolvedValue([]);
+        const result = await service.getUsers({});
+        expect(result).toEqual([]);
+      });
+    });
+  });
 });

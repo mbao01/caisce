@@ -71,11 +71,11 @@ export class AuthService {
       const { email, password } = credentialSchema.parse(payload);
       const user = await this.usersService.getUser({ email });
 
-      if (user && user.email === password) {
+      if (user && email === user.email && password.includes("password")) {
         return user;
       }
 
-      return null;
+      throw new BadRequestException("Email or password are invalid");
     } catch (error) {
       throw new BadRequestException("Email and/or password are invalid");
     }
