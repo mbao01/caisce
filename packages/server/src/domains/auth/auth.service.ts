@@ -28,7 +28,7 @@ export class AuthService {
   }
 
   async signTokens(sessionId: string, user: Express.User) {
-    const payload = { username: user.email, sub: { sid: sessionId, uid: user.id } };
+    const payload = { username: user.email, sub: user.id, sid: sessionId };
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {

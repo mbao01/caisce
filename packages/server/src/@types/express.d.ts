@@ -22,10 +22,8 @@ declare namespace Express {
 
   interface JwtPayload {
     username: string;
-    sub: {
-      uid: string;
-      sid: string;
-    };
+    sid: string;
+    sub: string;
   }
 
   interface Request {

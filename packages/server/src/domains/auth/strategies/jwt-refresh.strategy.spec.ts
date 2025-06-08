@@ -42,10 +42,8 @@ describe("JwtRefreshStrategy", () => {
 
     const mockPayload = {
       username: "test@example.com",
-      sub: {
-        sid: "test-session",
-        uid: "1",
-      },
+      sub: "1",
+      sid: "test-session",
     } as Express.JwtPayload;
 
     it("should validate successfully with matching session", async () => {

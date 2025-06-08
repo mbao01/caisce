@@ -28,12 +28,12 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy) {
       );
     }
 
-    if (sessionId !== payload.sub?.sid) {
+    if (sessionId !== payload.sid) {
       throw new ForbiddenException("You are not authenticated to access this resource");
     }
 
     return {
-      id: payload.sub?.uid,
+      id: payload.sub,
       email: payload.username,
     };
   }

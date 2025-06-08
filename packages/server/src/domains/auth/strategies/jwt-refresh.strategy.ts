@@ -27,7 +27,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, "jwt-refresh"
       );
     }
 
-    if (sessionId !== payload.sub?.sid) {
+    if (sessionId !== payload.sid) {
       throw new ForbiddenException("You are not authenticated to access this resource");
     }
 
@@ -35,7 +35,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, "jwt-refresh"
     const refreshToken = authorizationHeader?.replace("Bearer", "").trim();
 
     return {
-      id: payload.sub?.uid,
+      id: payload.sub,
       email: payload.username,
       refreshToken,
     };
