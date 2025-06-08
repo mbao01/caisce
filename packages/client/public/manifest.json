@@ -3,7 +3,7 @@
   "name": "AI Summary Chatbot",
   "version": "0.0.0",
   "description": "A conversational AI summary chatbot for Chrome",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "identity"],
   "action": {
     "default_popup": "index.html",
     "default_icon": {
