@@ -101,12 +101,12 @@ describe("AuthService", () => {
         refresh_token: null,
         cookie: { originalMaxAge: 86400000 },
       },
-    } as Partial<Request>;
+    } as unknown as Partial<Request>;
 
     mockRes = {
       cookie: jest.fn(),
       setHeader: jest.fn(),
-    } as Partial<Response>;
+    } as unknown as Partial<Response>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -175,7 +175,7 @@ describe("AuthService", () => {
       mockReq.session = {
         sid: sessionId,
         refresh_token: sessionRefreshToken,
-        cookie: jest.fn(),
+        cookie: {},
       };
       mockUser.refreshToken = userRefreshToken;
 
@@ -211,7 +211,7 @@ describe("AuthService", () => {
       mockReq.session = {
         sid: "test-session",
         refresh_token: "session-refresh-token",
-        cookie: jest.fn(),
+        cookie: {},
       };
       mockUser.refreshToken = "different-refresh-token";
 
