@@ -71,7 +71,7 @@ export class SessionService {
     return session;
   }
 
-  async createSession(res: Response, user?: any) {
+  async createSession(res: Response, user?: Express.User) {
     const maxAge = COOKIE_MAX_AGE;
     const session: Express.Session = {
       cookie: {

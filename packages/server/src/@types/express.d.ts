@@ -8,16 +8,17 @@ declare namespace Express {
   interface SessionCookie {
     maxAge: number;
     expires: Date;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   interface Session {
     sid?: string | null;
     cookie: Partial<SessionCookie>;
     passport?: {
-      user?: any;
+      user?: User;
     };
-    [key: string]: any;
+    refresh_token?: string;
+    [key: string]: unknown;
   }
 
   interface JwtPayload {
