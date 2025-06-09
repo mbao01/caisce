@@ -106,6 +106,7 @@ describe("AuthService", () => {
     mockRes = {
       cookie: jest.fn(),
       setHeader: jest.fn(),
+      redirect: jest.fn(),
     } as unknown as Partial<Response>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -479,6 +480,51 @@ describe("AuthService", () => {
         "Set-Cookie",
         "sessionId=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax"
       );
+    });
+  });
+
+  describe("googleComplete", () => {
+    let service: AuthService;
+    let mockPayload: { state?: string; accessToken: string };
+    const accessToken = "test-access-token";
+
+    beforeEach(async () => {
+      mockPayload = {
+        state: Buffer.from(
+          JSON.stringify({ redirectUrl: "http://localhost/redirect-url" })
+        ).toString("base64"),
+        accessToken,
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        imports: [SessionModule],
+        providers: [
+          AuthService,
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: JwtService, useValue: mockJwtService },
+          { provide: UsersService, useValue: mockUsersService },
+        ],
+      }).compile();
+      service = module.get<AuthService>(AuthService);
+    });
+
+    it("should complete successfully", async () => {
+      await service.googleComplete(mockPayload, mockRes as Response);
+
+      expect(mockRes.redirect).toHaveBeenCalledWith(
+        "http://localhost/redirect-url?access_token=test-access-token"
+      );
+    });
+
+    it("should throw BadRequestException when state does not include redirectUrl", async () => {
+      await expect(
+        service.googleComplete({ ...mockPayload, state: "" }, mockRes as Response)
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("should throw BadRequestException for invalid state", async () => {
+      await expect(
+        service.googleComplete({ ...mockPayload, state: "some-invalid-state" }, mockRes as Response)
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

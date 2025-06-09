@@ -10,6 +10,8 @@ import { CredentialDto } from "./schema/login.schema";
 
 const mockAuthService = {
   login: jest.fn(),
+  logout: jest.fn(),
+  googleComplete: jest.fn(),
   refreshTokens: jest.fn(),
 } as unknown as AuthService;
 
@@ -80,6 +82,25 @@ describe("AuthController", () => {
     it("should return user profile", () => {
       const result = controller.getProfile(mockReq);
       expect(result).toEqual(mockReq.user);
+    });
+  });
+
+  describe("logout", () => {
+    it("should call authService.logout with correct parameters", async () => {
+      await controller.logout(mockReq, mockRes);
+      expect(mockAuthService.logout).toHaveBeenCalledWith(mockReq, mockRes);
+    });
+  });
+
+  describe("googleCallback", () => {
+    it("should call authService.googleComplete with correct parameters", async () => {
+      const state = "test-state";
+      const accessToken = "test-access-token";
+
+      (mockAuthService.login as jest.Mock).mockResolvedValue({ access_token: accessToken });
+
+      await controller.googleCallback(mockReq, mockRes, state);
+      expect(mockAuthService.googleComplete).toHaveBeenCalledWith({ state, accessToken }, mockRes);
     });
   });
 });
