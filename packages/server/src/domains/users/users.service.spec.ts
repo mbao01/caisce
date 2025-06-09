@@ -7,8 +7,10 @@ import { UsersService } from "./users.service";
 const mockUser: User = {
   id: "1",
   email: "test@example.com",
-  name: "Test User",
+  firstName: "Test",
+  lastName: "User",
   createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe("UsersService", () => {
@@ -55,7 +57,8 @@ describe("UsersService", () => {
       (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
       const result = await service.createUser({
         email: mockUser.email,
-        name: "Test User",
+        firstName: "Test",
+        lastName: "User",
       });
       expect(result).toEqual(mockUser);
       expect(prisma.user.create).toHaveBeenCalled();
@@ -68,7 +71,8 @@ describe("UsersService", () => {
       await expect(
         service.createUser({
           email: mockUser.email,
-          name: "Test User",
+          firstName: "Test",
+          lastName: "User",
         })
       ).rejects.toThrow(BadRequestException);
     });
@@ -156,7 +160,8 @@ describe("UsersService", () => {
         prismaService.user.create = jest.fn().mockResolvedValue(mockUser);
         const result = await service.createUser({
           email: mockUser.email,
-          name: "Test User",
+          firstName: "Test",
+          lastName: "User",
         });
         expect(result).toEqual(mockUser);
         expect(prismaService.user.create).toHaveBeenCalled();
@@ -169,7 +174,8 @@ describe("UsersService", () => {
         await expect(
           service.createUser({
             email: mockUser.email,
-            name: "Test User",
+            firstName: "Test",
+            lastName: "User",
           })
         ).rejects.toThrow(BadRequestException);
       });

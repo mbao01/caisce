@@ -31,6 +31,7 @@ export class AuthController {
   @Get("google")
   @UseGuards(GoogleOauthGuard)
   // eslint-disable-next-line @typescript-eslint/no-empty-function
+  /* istanbul ignore next */
   async google() {}
 
   @Get("google/callback")
