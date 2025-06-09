@@ -19,6 +19,7 @@ model User {
   email     String     @unique
   firstName  String?
   lastName  String?
+  picture   String?
   providers Provider[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -32,10 +33,11 @@ enum ProviderType {
 model Provider {
   id            String   @id @default(cuid(2))
   type          ProviderType
-  providerId    String
-  profileUrl     String?
+  providerId    String @unique
   emailVerified  Boolean  @default(false)
   expiresAt     DateTime?
   userId        String
   user          User     @relation(fields: [userId], references: [id])
+
+  @@unique([type, providerId])
 }

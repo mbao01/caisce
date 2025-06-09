@@ -9,6 +9,9 @@ export class UsersService {
   async getUser(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
+      include: {
+        providers: true,
+      },
     });
   }
 

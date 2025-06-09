@@ -9,6 +9,7 @@ const mockUser: User = {
   email: "test@example.com",
   firstName: "Test",
   lastName: "User",
+  picture: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -42,6 +43,7 @@ describe("UsersService", () => {
       expect(result).toEqual(mockUser);
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: mockUser.email },
+        include: { providers: true },
       });
     });
 
@@ -145,6 +147,7 @@ describe("UsersService", () => {
         expect(result).toEqual(mockUser);
         expect(prismaService.user.findUnique).toHaveBeenCalledWith({
           where: { email: mockUser.email },
+          include: { providers: true },
         });
       });
 
