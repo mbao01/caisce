@@ -1,5 +1,6 @@
+import { UsersService } from "@/domains/users/users.service";
 import { SessionService } from "@/session/session.service";
-import { ForbiddenException } from "@nestjs/common";
+import { ForbiddenException, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { Request } from "express";
@@ -13,8 +14,19 @@ const mockSessionService = {
   getSessionId: jest.fn(),
 } as unknown as SessionService;
 
+const mockUsersService = {
+  getUser: jest.fn(),
+} as unknown as UsersService;
+
 describe("JwtRefreshStrategy", () => {
   let strategy: JwtRefreshStrategy;
+  const mockUser = {
+    id: "1",
+    email: "test@example.com",
+    firstName: "John",
+    lastName: "Doe",
+    picture: "https://example.com/picture.jpg",
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,6 +34,7 @@ describe("JwtRefreshStrategy", () => {
         JwtRefreshStrategy,
         { provide: ConfigService, useValue: mockConfigService },
         { provide: SessionService, useValue: mockSessionService },
+        { provide: UsersService, useValue: mockUsersService },
       ],
     }).compile();
 
@@ -49,14 +62,24 @@ describe("JwtRefreshStrategy", () => {
     it("should validate successfully with matching session", async () => {
       (mockSessionService.getSessionId as jest.Mock).mockReturnValue("test-session");
       (mockReq.get as jest.Mock).mockReturnValue("Bearer refresh-token");
+      (mockUsersService.getUser as jest.Mock).mockReturnValue(mockUser);
 
       const result = await strategy.validate(mockReq, mockPayload);
 
       expect(result).toEqual({
-        id: "1",
-        email: "test@example.com",
+        ...mockUser,
         refreshToken: "refresh-token",
       });
+    });
+
+    it("should throw InternalServerErrorException when user is not found", async () => {
+      (mockSessionService.getSessionId as jest.Mock).mockReturnValue("test-session");
+      (mockReq.get as jest.Mock).mockReturnValue("Bearer refresh-token");
+      (mockUsersService.getUser as jest.Mock).mockReturnValue(null);
+
+      await expect(strategy.validate(mockReq, mockPayload)).rejects.toThrow(
+        InternalServerErrorException
+      );
     });
 
     it("should throw ForbiddenException for missing session", async () => {

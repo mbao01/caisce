@@ -1,5 +1,6 @@
+import { UsersService } from "@/domains/users/users.service";
 import { SessionService } from "@/session/session.service";
-import { ForbiddenException } from "@nestjs/common";
+import { ForbiddenException, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { Request } from "express";
@@ -13,6 +14,10 @@ const mockSessionService = {
   getSessionId: jest.fn(),
 } as unknown as SessionService;
 
+const mockUsersService = {
+  getUser: jest.fn(),
+} as unknown as UsersService;
+
 describe("JwtAccessStrategy", () => {
   let strategy: JwtAccessStrategy;
 
@@ -22,6 +27,7 @@ describe("JwtAccessStrategy", () => {
         JwtAccessStrategy,
         { provide: ConfigService, useValue: mockConfigService },
         { provide: SessionService, useValue: mockSessionService },
+        { provide: UsersService, useValue: mockUsersService },
       ],
     }).compile();
 
@@ -45,15 +51,30 @@ describe("JwtAccessStrategy", () => {
       sid: "test-session",
     } as Express.JwtPayload;
 
+    const mockUser = {
+      id: "1",
+      email: "test@example.com",
+      firstName: "John",
+      lastName: "Doe",
+      picture: "https://example.com/picture.jpg",
+    };
+
     it("should validate successfully with matching session", async () => {
       (mockSessionService.getSessionId as jest.Mock).mockReturnValue("test-session");
+      (mockUsersService.getUser as jest.Mock).mockReturnValue(mockUser);
 
       const result = await strategy.validate(mockReq, mockPayload);
 
-      expect(result).toEqual({
-        id: "1",
-        email: "test@example.com",
-      });
+      expect(result).toEqual(mockUser);
+    });
+
+    it("should throw InternalServerErrorException when user is not found", async () => {
+      (mockSessionService.getSessionId as jest.Mock).mockReturnValue("test-session");
+      (mockUsersService.getUser as jest.Mock).mockReturnValue(null);
+
+      await expect(strategy.validate(mockReq, mockPayload)).rejects.toThrow(
+        InternalServerErrorException
+      );
     });
 
     it("should throw ForbiddenException for missing session", async () => {
