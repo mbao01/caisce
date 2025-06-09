@@ -1,5 +1,5 @@
 import { SessionService } from "@/session/session.service";
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy, Profile } from "passport-google-oauth20";
@@ -18,27 +18,30 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
     });
   }
 
-  authorizationParams(
-    options: { state?: Partial<{ redirectUrl: string }> } & Record<string, unknown>
-  ): object {
-    const state = options.state
-      ? Buffer.from(JSON.stringify(options.state)).toString("base64")
-      : undefined;
-    return { ...options, state };
-  }
+  async validate(
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Partial<Profile>
+  ): Promise<any> {
+    const { id, name, emails, photos, provider } = profile;
+    const email = emails?.[0].value;
+    const picture = photos?.[0].value;
+    const fullName = name ? `${name?.givenName} ${name?.familyName}` : "";
 
-  async validate(_accessToken: string, _refreshToken: string, profile: Profile): Promise<any> {
-    const { id, name, emails, photos } = profile;
+    if (!id) {
+      throw new ForbiddenException(
+        "This is a protected resource and you must access it accordingly"
+      );
+    }
+
+    if (id !== profile?._json?.sub) {
+      throw new ForbiddenException("You are not authenticated to access this resource");
+    }
 
     // TODO:: update user to match what should be sent to redis
     const user = {
-      provider: "google",
-      providerId: id,
-      email: emails?.[0].value,
-      firstName: name?.givenName,
-      lastName: name?.familyName,
-      name: name ? `${name?.givenName} ${name?.familyName}` : "",
-      picture: photos?.[0].value,
+      id,
+      email,
     };
 
     return user;

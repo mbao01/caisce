@@ -106,16 +106,18 @@ export class AuthService {
     await this.sessionService.destroySession(req, res);
   }
 
-  async googleComplete(query: { state?: string; accessToken: string }, res: Response) {
+  async googleComplete(payload: { state?: string; accessToken: string }, res: Response) {
     try {
-      const state = query.state ? JSON.parse(Buffer.from(query.state, "base64").toString()) : {};
+      const state = payload.state
+        ? JSON.parse(Buffer.from(payload.state, "base64").toString())
+        : {};
 
       if (!state.redirectUrl) {
         throw new BadRequestException("Missing redirect URL");
       }
 
       const url = new URL(state.redirectUrl);
-      url.searchParams.set("access_token", query.accessToken);
+      url.searchParams.set("access_token", payload.accessToken);
 
       return res.redirect(url.toString());
     } catch (error) {

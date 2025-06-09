@@ -7,9 +7,11 @@ export class GoogleOauthGuard extends AuthGuard("google") {
     const { query } = context.switchToHttp().getRequest();
 
     return {
-      state: {
-        ...query,
-      },
+      state: Buffer.from(
+        JSON.stringify({
+          ...query,
+        })
+      ).toString("base64"),
     };
   }
 }
