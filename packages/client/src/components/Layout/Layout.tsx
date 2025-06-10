@@ -6,12 +6,13 @@ import { Login } from "../Login";
 import { Logout } from "../Logout";
 
 export const Layout = ({ children }: LayoutProps) => {
-  // const user = { name: "John Doe", email: "john.doe@example.com", image: "" };
-  const [user, setUser] = useState<{ name: string; email: string; image: string } | null>({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    image: "",
-  });
+  // const user = { firstName: "John", lastName: "Doe", email: "john.doe@example.com", picture: "" };
+  const [user, setUser] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    picture: string;
+  } | null>(null);
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {

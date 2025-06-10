@@ -37,6 +37,10 @@ export const Logout = ({ user }: LogoutProps) => {
     });
   };
 
+  const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+  const initials =
+    `${user.firstName.charAt(0) ?? ""}${user.lastName.charAt(0) ?? ""}`.toUpperCase();
+
   return (
     <Tooltip
       side="left"
@@ -45,9 +49,9 @@ export const Logout = ({ user }: LogoutProps) => {
       trigger={
         <Button variant="link" onClick={handleLogout} className="font-normal px-1 h-fit">
           <Avatar className="size-6">
-            <Avatar.Image ring alt={user.name} src={user.image} shape="circle" variant="primary" />
+            <Avatar.Image ring alt={fullName} src={user.picture} shape="circle" variant="primary" />
             <Avatar.Fallback variant="primary" shape="circle">
-              {user.name.charAt(0)}
+              {initials}
             </Avatar.Fallback>
           </Avatar>
           Logout
@@ -56,13 +60,13 @@ export const Logout = ({ user }: LogoutProps) => {
     >
       <div className="flex items-center gap-2">
         <Avatar size={8}>
-          <Avatar.Image ring alt={user.name} src={user.image} shape="circle" variant="primary" />
+          <Avatar.Image ring alt={fullName} src={user.picture} shape="circle" variant="primary" />
           <Avatar.Fallback variant="primary" shape="circle" size={8}>
-            {user.name.charAt(0)}
+            {initials}
           </Avatar.Fallback>
         </Avatar>
         <div className="flex flex-col justify-center">
-          <span>{user.name}</span>
+          <span>{fullName}</span>
           <span>{user.email}</span>
         </div>
       </div>

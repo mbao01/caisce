@@ -1,7 +1,8 @@
 export type LogoutProps = {
   user: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
-    image: string;
+    picture: string;
   };
 };
