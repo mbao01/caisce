@@ -15,39 +15,46 @@ export const Layout = ({ children }: LayoutProps) => {
   } | null>(null);
   const [isLoading, setLoading] = useState(false);
 
-  useEffect(() => {
-    chrome.storage?.local.onChanged.addListener(() => {
-      chrome.storage?.local.get("accessToken", async ({ accessToken }) => {
-        if (!accessToken) {
-          console.error("Token not found in storage");
-          setUser(null);
-          return;
+  const getUser = () => {
+    chrome.storage?.local.get("accessToken", async ({ accessToken }) => {
+      if (!accessToken) {
+        console.error("Token not found in storage");
+        setUser(null);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:3000/auth/profile", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
         }
 
-        try {
-          setLoading(true);
-          const response = await fetch("http://localhost:3000/auth/profile", {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-          }
-
-          const result = await response.json();
-          if (result) {
-            setUser({ ...result, name: "John Doe" });
-          }
-        } catch (err) {
-          console.error("Fetch error:", err);
-        } finally {
-          setLoading(false);
+        const result = await response.json();
+        if (result) {
+          setUser({ ...result, name: "John Doe" });
         }
-      });
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     });
+  };
+
+  useEffect(() => {
+    getUser();
+    chrome.storage?.local.onChanged.addListener(getUser);
+
+    return () => {
+      chrome.storage?.local.onChanged.removeListener(getUser);
+    };
   }, []);
 
   return (

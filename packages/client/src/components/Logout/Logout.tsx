@@ -49,7 +49,14 @@ export const Logout = ({ user }: LogoutProps) => {
       trigger={
         <Button variant="link" onClick={handleLogout} className="font-normal px-1 h-fit">
           <Avatar className="size-6">
-            <Avatar.Image ring alt={fullName} src={user.picture} shape="circle" variant="primary" />
+            <Avatar.Image
+              ring
+              alt={fullName}
+              src={user.picture}
+              shape="circle"
+              variant="primary"
+              className="!ring-1"
+            />
             <Avatar.Fallback variant="primary" shape="circle">
               {initials}
             </Avatar.Fallback>
@@ -59,9 +66,16 @@ export const Logout = ({ user }: LogoutProps) => {
       }
     >
       <div className="flex items-center gap-2">
-        <Avatar size={8}>
-          <Avatar.Image ring alt={fullName} src={user.picture} shape="circle" variant="primary" />
-          <Avatar.Fallback variant="primary" shape="circle" size={8}>
+        <Avatar className="size-6">
+          <Avatar.Image
+            ring
+            alt={fullName}
+            src={user.picture}
+            shape="circle"
+            variant="primary"
+            className="!ring-1"
+          />
+          <Avatar.Fallback variant="primary" shape="circle">
             {initials}
           </Avatar.Fallback>
         </Avatar>
