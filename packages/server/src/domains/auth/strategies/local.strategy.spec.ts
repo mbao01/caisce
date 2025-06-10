@@ -26,13 +26,12 @@ describe("LocalStrategy", () => {
     const mockUser = {
       id: "1",
       email: "test@example.com",
-      password: "hashed-password",
     };
 
     it("should validate successfully with correct credentials", async () => {
       (mockAuthService.validatePassword as jest.Mock).mockResolvedValue(mockUser);
 
-      const result = await strategy.validate("test@example.com", "password");
+      const result = await strategy.validate("test@example.com");
 
       expect(result).toEqual(mockUser);
     });
@@ -40,9 +39,7 @@ describe("LocalStrategy", () => {
     it("should throw UnauthorizedException for invalid credentials", async () => {
       (mockAuthService.validatePassword as jest.Mock).mockResolvedValue(null);
 
-      await expect(strategy.validate("invalid@example.com", "password")).rejects.toThrow(
-        UnauthorizedException
-      );
+      await expect(strategy.validate("invalid@example.com")).rejects.toThrow(UnauthorizedException);
     });
   });
 });

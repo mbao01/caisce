@@ -1,11 +1,17 @@
 import * as argon2 from "argon2";
-import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "../users/users.service";
 import { CredentialDto, credentialSchema } from "./schema/login.schema";
 import { SessionService } from "@/session/session.service";
 import { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
+import { ProviderType } from "@prisma/client";
 
 @Injectable()
 export class AuthService {
@@ -68,16 +74,23 @@ export class AuthService {
 
   async validatePassword(payload: CredentialDto) {
     try {
-      const { email, password } = credentialSchema.parse(payload);
-      const user = await this.usersService.getUser({ email });
+      const { email } = credentialSchema.parse(payload);
+      const user = await this.usersService.getUser({
+        email,
+        providers: {
+          some: {
+            type: ProviderType.CREDENTIAL,
+          },
+        },
+      });
 
-      if (user && email === user.email && password.includes("password")) {
-        return user;
+      if (!user) {
+        throw new BadRequestException("User may or may not exist");
       }
 
-      throw new BadRequestException("Email or password are invalid");
+      return user;
     } catch (error) {
-      throw new BadRequestException("Email and/or password are invalid");
+      throw new InternalServerErrorException("Something went wrong trying to find user");
     }
   }
 
@@ -85,7 +98,7 @@ export class AuthService {
   async login(req: Request, res: Response) {
     const user = req.user;
     if (!user) {
-      throw new BadRequestException("Email and password are required");
+      throw new BadRequestException("Email is required");
     }
     // Destroy old session and create new session (session regeneration)
     await this.sessionService.destroySession(req, res);
@@ -123,5 +136,23 @@ export class AuthService {
     } catch (error) {
       throw new BadRequestException("Invalid state");
     }
+  }
+
+  async signup(req: Request, res: Response) {
+    const user = req.user;
+    if (!user) {
+      throw new BadRequestException("Email is required");
+    }
+
+    const createdUser = await this.usersService.createUser(user);
+    const { sessionId } = await this.sessionService.createSession(res, user);
+    const { accessToken, refreshToken } = await this.signTokens(sessionId, user);
+    await this.updateRefreshToken(sessionId, refreshToken, res);
+
+    return {
+      ...createdUser,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   }
 }

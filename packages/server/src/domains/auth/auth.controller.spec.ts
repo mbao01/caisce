@@ -62,7 +62,6 @@ describe("AuthController", () => {
   describe("login", () => {
     const mockCredential: CredentialDto = {
       email: "test@example.com",
-      password: "password",
     };
 
     it("should call authService.login with correct parameters", async () => {

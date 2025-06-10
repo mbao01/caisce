@@ -2,12 +2,14 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 // import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { patchNestJsSwagger } from "nestjs-zod";
 // import * as session from "express-session";
 import { AppModule } from "./app.module";
 
 // import { MAX_AGE } from "./constants/session";
 
 async function bootstrap() {
+  patchNestJsSwagger();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.set("query parser", "extended");

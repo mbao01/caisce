@@ -228,7 +228,6 @@ describe("AuthService", () => {
     it("should validate correct credentials", async () => {
       const credentials = {
         email: "test@example.com",
-        password: "test-password",
       };
 
       mockUsersService.getUser.mockResolvedValue(mockUser);

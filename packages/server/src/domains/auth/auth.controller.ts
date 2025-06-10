@@ -3,10 +3,12 @@ import { Controller, Post, UseGuards, Get, Body, Req, Res, Query } from "@nestjs
 import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { AuthService } from "./auth.service";
 import { JwtAccessGuard } from "./guards/jwt-access.guard";
+import { SignupDto, signupSchema } from "./schema/signup.schema";
 import { CredentialDto, credentialSchema } from "./schema/login.schema";
 import { ValidatorPipe } from "@/pipes/validator.pipe";
 import { JwtRefreshGuard } from "./guards/jwt-refresh.guard";
 import { GoogleOauthGuard } from "./guards/google-oauth.guard";
+import { ApiBody } from "@nestjs/swagger";
 
 @Controller("auth")
 export class AuthController {
@@ -20,6 +22,16 @@ export class AuthController {
     @Res({ passthrough: true }) res
   ) {
     return await this.authService.login(req, res);
+  }
+
+  @Post("signup")
+  @ApiBody({ type: SignupDto })
+  async signup(
+    @Body(new ValidatorPipe(signupSchema)) credential: SignupDto,
+    @Req() req,
+    @Res({ passthrough: true }) res
+  ) {
+    return await this.authService.signup(req, res);
   }
 
   @UseGuards(JwtRefreshGuard)
