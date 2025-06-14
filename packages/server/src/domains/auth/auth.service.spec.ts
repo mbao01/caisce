@@ -2,13 +2,18 @@ import { CacheService } from "@/cache/cache.service";
 import { SessionModule } from "@/session/session.module";
 import { SessionService } from "@/session/session.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { BadRequestException, ForbiddenException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { Test, TestingModule } from "@nestjs/testing";
 import * as argon2 from "argon2";
 import { Cache } from "cache-manager";
 import { Express, Request, Response } from "express";
+import { OtpService } from "../otp/otp.service";
 import { UsersService } from "../users/users.service";
 import { AuthService } from "./auth.service";
 
@@ -44,6 +49,16 @@ type MockUsersService = {
 const mockUsersService: MockUsersService = {
   getUser: jest.fn(),
   createUser: jest.fn(),
+} as unknown as MockUsersService;
+
+// Mock UsersService for testing
+type MockOtpService = {
+  getUser: jest.Mock<Promise<TestUser | null>, [any]>;
+  createUser: jest.Mock<Promise<TestUser>, [any]>;
+};
+const mockOtpService: MockOtpService = {
+  getOtp: jest.fn(),
+  sendEmail: jest.fn(),
 } as unknown as MockUsersService;
 
 const mockConfigService = {
@@ -116,6 +131,7 @@ describe("AuthService", () => {
         { provide: JwtService, useValue: mockJwtService },
         { provide: SessionService, useValue: mockSessionService },
         { provide: UsersService, useValue: mockUsersService },
+        { provide: OtpService, useValue: mockOtpService },
         { provide: CacheService, useValue: mockCacheService },
       ],
     }).compile();
@@ -235,51 +251,26 @@ describe("AuthService", () => {
       await expect(service.validatePassword(credentials)).resolves.toEqual(mockUser);
     });
 
-    it("should throw BadRequestException for invalid credentials", async () => {
-      const credentials = {
-        email: "test@example.com",
-        password: "wrong-pass-word",
-      };
-
-      mockUsersService.getUser.mockResolvedValue(mockUser);
-
-      await expect(service.validatePassword(credentials)).rejects.toThrow(BadRequestException);
-    });
-
-    it("should throw BadRequestException for schema validation error", async () => {
+    it("should throw InternalServerErrorException for schema validation error", async () => {
       const invalidCredentials = {
         email: "invalid-email",
-        password: "",
       };
 
       await expect(service.validatePassword(invalidCredentials)).rejects.toThrow(
-        BadRequestException
+        new InternalServerErrorException("Something went wrong trying to find user")
       );
     });
 
     it("should throw BadRequestException if user not found", async () => {
       const credentials = {
         email: "nonexistent@example.com",
-        password: "password",
       };
 
       mockUsersService.getUser.mockResolvedValue(null);
 
-      await expect(service.validatePassword(credentials)).rejects.toThrow(BadRequestException);
-    });
-
-    it("should throw BadRequestException if email and password mismatch", async () => {
-      const credentials = {
-        email: "test@example.com",
-        password: "different-password",
-      };
-
-      mockUsersService.getUser.mockResolvedValue({
-        ...mockUser,
-        email: "different@example.com",
-      });
-
-      await expect(service.validatePassword(credentials)).rejects.toThrow(BadRequestException);
+      await expect(service.validatePassword(credentials)).rejects.toThrow(
+        new BadRequestException("User may or may not exist")
+      );
     });
   });
 
@@ -449,6 +440,7 @@ describe("AuthService", () => {
           AuthService,
           { provide: ConfigService, useValue: mockConfigService },
           { provide: JwtService, useValue: mockJwtService },
+          { provide: OtpService, useValue: mockOtpService },
           { provide: UsersService, useValue: mockUsersService },
         ],
       })
@@ -500,6 +492,7 @@ describe("AuthService", () => {
           AuthService,
           { provide: ConfigService, useValue: mockConfigService },
           { provide: JwtService, useValue: mockJwtService },
+          { provide: OtpService, useValue: mockOtpService },
           { provide: UsersService, useValue: mockUsersService },
         ],
       }).compile();

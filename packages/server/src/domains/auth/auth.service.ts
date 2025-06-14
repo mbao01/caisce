@@ -11,13 +11,15 @@ import { CredentialDto, credentialSchema } from "./schema/login.schema";
 import { SessionService } from "@/session/session.service";
 import { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
-import { ProviderType } from "@prisma/client";
+import { ProviderType, User } from "@prisma/client";
+import { OtpService } from "../otp/otp.service";
 
 @Injectable()
 export class AuthService {
   constructor(
     private configService: ConfigService,
     private jwtService: JwtService,
+    private otpService: OtpService,
     private sessionService: SessionService,
     private usersService: UsersService
   ) {}
@@ -73,9 +75,11 @@ export class AuthService {
   }
 
   async validatePassword(payload: CredentialDto) {
+    let user: User | null;
+
     try {
       const { email } = credentialSchema.parse(payload);
-      const user = await this.usersService.getUser({
+      user = await this.usersService.getUser({
         email,
         providers: {
           some: {
@@ -83,15 +87,15 @@ export class AuthService {
           },
         },
       });
-
-      if (!user) {
-        throw new BadRequestException("User may or may not exist");
-      }
-
-      return user;
     } catch (error) {
       throw new InternalServerErrorException("Something went wrong trying to find user");
     }
+
+    if (!user) {
+      throw new BadRequestException("User may or may not exist");
+    }
+
+    return user;
   }
 
   // Log user in — regenerate session and set user
@@ -136,6 +140,31 @@ export class AuthService {
     } catch (error) {
       throw new BadRequestException("Invalid state");
     }
+  }
+
+  async sendOTP(email: string) {
+    const user = await this.usersService.getUser({ email });
+    const isNewUser = !Boolean(user);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // save otp in redis!!!
+    const { otpExpiry } = await this.otpService.saveOtp(email, otp);
+    // TODO:: maybe email service???
+    await this.otpService.sendEmail(email, otp, otpExpiry);
+
+    return { isNewUser, otpExpiry };
+  }
+
+  async validateOTP(email: string, otp: string): Promise<any> {
+    const validOtp = await this.otpService.getOtp(email);
+
+    const isValidOtp = Boolean(validOtp && validOtp === otp);
+
+    if (isValidOtp) {
+      await this.otpService.deleteOtp(email);
+    }
+
+    return isValidOtp;
   }
 
   async signup(req: Request, res: Response) {

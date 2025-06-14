@@ -81,6 +81,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
       firstName: foundUser.firstName,
       lastName: foundUser.lastName,
       picture: foundUser.picture,
+      createdAt: foundUser.createdAt,
+      updatedAt: foundUser.updatedAt,
     };
 
     return user;

@@ -4,10 +4,11 @@ import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { AuthService } from "./auth.service";
 import { JwtAccessGuard } from "./guards/jwt-access.guard";
 import { SignupDto, signupSchema } from "./schema/signup.schema";
-import { CredentialDto, credentialSchema } from "./schema/login.schema";
+import { CredentialDto, credentialSchema, OtpDto, otpSchema } from "./schema/login.schema";
 import { ValidatorPipe } from "@/pipes/validator.pipe";
 import { JwtRefreshGuard } from "./guards/jwt-refresh.guard";
 import { GoogleOauthGuard } from "./guards/google-oauth.guard";
+import { OtpAuthGuard } from "./guards/otp-auth.guard";
 import { ApiBody } from "@nestjs/swagger";
 
 @Controller("auth")
@@ -52,6 +53,21 @@ export class AuthController {
     const { access_token } = await this.authService.login(req, res);
 
     return await this.authService.googleComplete({ state, accessToken: access_token }, res);
+  }
+
+  @Post("otp")
+  async otp(@Body(new ValidatorPipe(credentialSchema)) credential: CredentialDto) {
+    return await this.authService.sendOTP(credential.email);
+  }
+
+  @Post("otp/callback")
+  @UseGuards(OtpAuthGuard)
+  async otpCallback(
+    @Body(new ValidatorPipe(otpSchema)) otp: OtpDto,
+    @Req() req,
+    @Res({ passthrough: true }) res
+  ) {
+    return await this.authService.login(req, res);
   }
 
   @Get("profile")

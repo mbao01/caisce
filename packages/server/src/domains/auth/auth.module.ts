@@ -10,6 +10,8 @@ import { SessionModule } from "@/session/session.module";
 import { JwtAccessStrategy } from "./strategies/jwt-access.strategy";
 import { JwtRefreshStrategy } from "./strategies/jwt-refresh.strategy";
 import { GoogleStrategy } from "./strategies/google-oauth.strategy";
+import { OtpAuthStrategy } from "./strategies/otp-auth.strategy";
+import { OtpModule } from "../otp/otp.module";
 
 @Module({
   imports: [
@@ -24,11 +26,19 @@ import { GoogleStrategy } from "./strategies/google-oauth.strategy";
       },
       inject: [ConfigService],
     }),
+    OtpModule,
     PassportModule,
     SessionModule,
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtAccessStrategy, JwtRefreshStrategy, GoogleStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtAccessStrategy,
+    JwtRefreshStrategy,
+    GoogleStrategy,
+    OtpAuthStrategy,
+  ],
 })
 export class AuthModule {}
